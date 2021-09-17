@@ -15,6 +15,24 @@ function App() {
   const dispatch = useDispatch();
   const blockchain = useSelector((state) => state.blockchain);
   const data = useSelector((state) => state.data);
+  const [loading, setLoading] = useState(false);
+  const [notify, setNotify] = useState('Maybe its your lucky day!');
+
+  const mintNFTs = (_amount) => {
+    setLoading(true);
+    setNotify('Minting....');
+    blockchain.smartContract.methods.mint(blockchain.account, _amount).send({
+      from: blockchain.account,
+      value: blockchain.web3.utils.toWei((0.01*_amount).toString(), "ether") 
+    }).once("error", (err) => {
+      console.log(err);
+      setNotify("Error");
+      setLoading(false);
+    }).then((receipt)=> {
+      setNotify("Success");
+      setLoading(false);
+    });
+  }
 
   useEffect(() => {
     if (blockchain.account !== "" && blockchain.smartContract !== null) {
@@ -42,10 +60,43 @@ function App() {
           ) : null}
         </s.Container>
       ) : (
-        <s.Container flex={1} ai={"center"} style={{ padding: 24 }}>
+        <s.Container 
+          flex={1} 
+          ai={"center"}
+          jc={"center"}
+          style={{ padding: 24 }}
+        >
           <s.TextTitle style={{ textAlign: "center" }}>
-            Name: {data.name}.
+            Total supply: {data.totalSupply} / {data.maxSupply}
           </s.TextTitle>
+          <s.SpacerLarge />
+          <s.TextTitle style={{ textAlign: "center" }}>
+            Let get 1 NFT with 0.01 ETH.
+          </s.TextTitle>
+          <s.SpacerLarge />
+          <s.TextTitle style={{ textAlign: "center" }}>
+            {notify}
+          </s.TextTitle>
+          <s.SpacerLarge />
+          <StyledButton
+            disabled={loading ? 1 : 0}
+            onClick={(e) => {
+              e.preventDefault();
+              mintNFTs(1);
+            }}
+          >
+            {loading ? 'Busy minting' : 'MINT 1 NFT'}
+          </StyledButton>
+          <s.SpacerSmall />
+          <StyledButton
+            disabled={loading ? 1 : 0}
+            onClick={(e) => {
+              e.preventDefault();
+              mintNFTs(3);
+            }}
+          >
+            {loading ? 'Busy minting' : 'MINT 3 NFTs'}
+          </StyledButton>
         </s.Container>
       )}
     </s.Screen>
